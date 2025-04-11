@@ -1,21 +1,21 @@
 import React, { useState } from "react";
 import dummyProducts from "@/data/dummyProducts";
 import { useCategory } from "@/context/CategoryContext";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Pencil, Trash2, Search } from "lucide-react";
 
 const ProductPage = () => {
   const [products, setProducts] = useState(dummyProducts);
+  const [searchTerm, setSearchTerm] = useState("");
   const { categories } = useCategory();
-  const [showForm, setShowForm] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "",
-    price: "",
-    stock: "",
-  });
+  const [formData, setFormData] = useState({ name: "", category: "", price: "", stock: "" });
+  const [showForm, setShowForm] = useState(false);
 
   const openAddModal = () => {
     setFormData({ name: "", category: "", price: "", stock: "" });
@@ -37,12 +37,7 @@ const ProductPage = () => {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-
-    const data = {
-      ...formData,
-      price: parseInt(formData.price),
-      stock: parseInt(formData.stock),
-    };
+    const data = { ...formData, price: parseInt(formData.price), stock: parseInt(formData.stock) };
 
     if (isEditMode && selectedProduct) {
       setProducts((prev) =>
@@ -53,10 +48,11 @@ const ProductPage = () => {
     }
 
     setShowForm(false);
-    setFormData({ name: "", category: "", price: "", stock: "" });
-    setIsEditMode(false);
-    setSelectedProduct(null);
   };
+
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="p-4 space-y-4">
@@ -65,103 +61,89 @@ const ProductPage = () => {
         <Button onClick={openAddModal}>+ Tambah Produk</Button>
       </div>
 
+      <div className="flex items-center gap-2">
+        <Search size={18} className="text-gray-500" />
+        <Input
+          placeholder="Cari produk..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-sm"
+        />
+      </div>
+
       <div className="grid gap-4">
-        {products.map((product) => (
-          <Card
-            key={product.id}
-            className="flex justify-between items-center p-4"
-          >
-            <div>
-              <div className="font-semibold">{product.name}</div>
-              <div className="text-sm text-gray-500">{product.category}</div>
-              <div className="text-sm text-green-600">
-                Rp {product.price.toLocaleString()}
+        {filteredProducts.map((product) => (
+          <Card key={product.id}>
+            <CardContent className="flex justify-between items-center p-4">
+              <div>
+                <div className="font-semibold">{product.name}</div>
+                <div className="text-sm text-muted-foreground">{product.category}</div>
+                <div className="text-sm text-green-600">Rp {product.price.toLocaleString()}</div>
+                <div className="text-sm">Stok: {product.stock}</div>
               </div>
-              <div className="text-sm">Stok: {product.stock}</div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => handleEdit(product)}>
-                Edit
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => handleDelete(product.id)}
-              >
-                Hapus
-              </Button>
-            </div>
+              <div className="flex gap-2">
+                <Button size="icon" variant="outline" onClick={() => handleEdit(product)}>
+                  <Pencil size={16} />
+                </Button>
+                <Button size="icon" variant="destructive" onClick={() => handleDelete(product.id)}>
+                  <Trash2 size={16} />
+                </Button>
+              </div>
+            </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Modal Form */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-full max-w-md space-y-4">
-            <h2 className="text-lg font-bold">
-              {isEditMode ? "Edit Produk" : "Tambah Produk"}
-            </h2>
-            <form onSubmit={handleFormSubmit} className="space-y-3">
-              <input
-                type="text"
-                placeholder="Nama Produk"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full p-2 border rounded dark:bg-gray-700"
-                required
-              />
-              <select
-                value={formData.category}
-                onChange={(e) =>
-                  setFormData({ ...formData, category: e.target.value })
-                }
-                className="w-full p-2 border rounded dark:bg-gray-700"
-                required
-              >
-                <option value="">Pilih Kategori</option>
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{isEditMode ? "Edit Produk" : "Tambah Produk"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleFormSubmit} className="space-y-4">
+            <Input
+              placeholder="Nama Produk"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+            />
+            <Select
+              value={formData.category}
+              onValueChange={(value) => setFormData({ ...formData, category: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Pilih Kategori" />
+              </SelectTrigger>
+              <SelectContent>
                 {categories.map((cat) => (
-                  <option key={cat.id} value={cat.name}>
+                  <SelectItem key={cat.id} value={cat.name}>
                     {cat.name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-
-              <input
-                type="number"
-                placeholder="Harga"
-                value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
-                }
-                className="w-full p-2 border rounded dark:bg-gray-700"
-                required
-              />
-              <input
-                type="number"
-                placeholder="Stok"
-                value={formData.stock}
-                onChange={(e) =>
-                  setFormData({ ...formData, stock: e.target.value })
-                }
-                className="w-full p-2 border rounded dark:bg-gray-700"
-                required
-              />
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowForm(false)}
-                >
-                  Batal
-                </Button>
-                <Button type="submit">Simpan</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+              </SelectContent>
+            </Select>
+            <Input
+              type="number"
+              placeholder="Harga"
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              required
+            />
+            <Input
+              type="number"
+              placeholder="Stok"
+              value={formData.stock}
+              onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+              required
+            />
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                Batal
+              </Button>
+              <Button type="submit">Simpan</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

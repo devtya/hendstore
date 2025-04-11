@@ -27,16 +27,16 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map((item, index) => (
-          <Card key={index} className="bg-white dark:bg-gray-800 text-black dark:text-white shadow rounded-2xl">
+          <Card key={index}>
             <CardContent className="p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-300">{item.label}</p>
+              <p className="text-sm text-muted-foreground">{item.label}</p>
               <p className="text-xl font-bold mt-2">{item.value}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card className="bg-white dark:bg-gray-800 text-black dark:text-white shadow rounded-2xl">
+      <Card>
         <CardContent className="p-4">
           <p className="font-semibold mb-4">Grafik Transaksi 7 Hari Terakhir</p>
           <ResponsiveContainer width="100%" height={250}>
