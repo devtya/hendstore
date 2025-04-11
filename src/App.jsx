@@ -29,9 +29,7 @@ function App() {
 
         <Route
           path="/admin"
-          element={
-            <AdminLayout toggleTheme={toggleTheme} isDark={isDark} />
-          }
+          element={<AdminLayout toggleTheme={toggleTheme} isDark={isDark} />}
         >
           <Route index element={<DashboardPage />} />
           <Route path="dashboard" element={<DashboardPage />} />
